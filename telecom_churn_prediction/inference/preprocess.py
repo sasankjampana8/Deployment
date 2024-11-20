@@ -16,8 +16,54 @@ class Preprocess:
                 elif "model" in file:
                     continue
             print("Loaded the estimators...")
+            # print(self.estimators)
         except Exception as e:
             print(f"Error loading the estimators: {e}")
+            
+    def label_encode(self, data):
+        try:
+            cat_cols = [
+            'gender', 'Partner', 'Dependents', 'PhoneService', 'MultipleLines', 'InternetService',
+            'OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport',
+            'StreamingTV', 'StreamingMovies', 'Contract', 'PaperlessBilling',
+            'PaymentMethod'
+        ]
+            for col in cat_cols:
+                col_name = f"{col}_label_encoder_estimator"
+                encoder = self.estimators[col_name]
+                data[col].fillna("missing", inplace=True)
+                data[col] = data[col].map(
+                    lambda s: "Others" if s not in encoder.classes_ else s
+                ) 
+                data[col] = encoder.transform(data[col])
+            
+            return data
+                
+        
+        except Exception as e:
+            print(f"Error label encoding categorical columns: {e}")
+            
+            
+    def scaling(self, data):
+        data['TotalCharges'] = pd.to_numeric(data['TotalCharges'], errors='coerce')
+        
+        num_cols = ['tenure','MonthlyCharges', 'TotalCharges' ]
+
+        
+        for col in num_cols:
+            col_scaler = f"{col}_scaler_estimator"
+            scaler = self.estimators[col_scaler]
+            data[col] = scaler.fit_transform(data[[col]])
+        
+        return data
     
-    def process(self, data):
-        pass
+    def drop_columns(self, data):
+        data.drop(['customerID'], axis=1, inplace=True)
+        return data
+    
+    def preprocess(self, data):
+        data = self.label_encode(data)
+        data = self.scaling(data)
+        data = self.drop_columns(data)
+        print("Preprocessing done")
+        return data
