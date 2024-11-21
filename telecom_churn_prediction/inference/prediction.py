@@ -37,9 +37,13 @@ class Prediction:
         Make predictions on the preprocessed data.
         """
         try:
+            custID = data[['customerID']]
             processed_data = self.preprocess(data)
             preds = self.model.predict(processed_data)
-            return preds
+            df = pd.DataFrame(columns = ['customer_id', 'prediction'])
+            df['customer_id'] = custID
+            df['prediction'] = preds
+            return preds, df
         except Exception as e:
             print(f"Error during prediction: {e}")
             return None
