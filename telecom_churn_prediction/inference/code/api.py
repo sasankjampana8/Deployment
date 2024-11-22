@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
+import json
 from prediction import Prediction
 import pandas as pd
 from typing import List
@@ -9,7 +10,9 @@ from typing import List
 app = FastAPI()
 
 # Path to your model
-model_path = "/home/jampanasasank/Documents/Deployment/Deployment/telecom_churn_prediction/model"
+model_path = os.environ['MODEL']
+print(model_path)
+# model_path = '/home/jampanasasank/Documents/Deployment/Deployment/telecom_churn_prediction/inference/model'
 
 
 
@@ -24,8 +27,10 @@ def prediction(data: List[dict]):
     """
     try:
         obj = Prediction(model_path=model_path)
-        preds, df = obj.make_prediction(data)  # Adjust the function to handle lists
-        return df.to_json(orient='records')
+        data = pd.DataFrame(data)
+        _, df = obj.make_prediction(data)  # Adjust the function to handle lists
+        print(True)
+        return df.to_dict(orient='records')
 
     except Exception as e:
         # Catch and raise any errors
@@ -33,4 +38,4 @@ def prediction(data: List[dict]):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api:app", host="0.0.0.0", port=8080, reload=True)
